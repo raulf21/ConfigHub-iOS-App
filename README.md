@@ -1,36 +1,58 @@
-# ConfigHub: Dynamic iOS App Configuration
+# ConfigHub: A Scalable Remote Configuration System for iOS
 
-ConfigHub is a sophisticated iOS application built with SwiftUI that demonstrates a professional, scalable remote configuration system. The project is modeled after the architecture used to deliver customized user experiences in large-scale, multi-tenant applications, such as a satellite internet service with various providers and customer plans.
+## Executive Summary
 
-The app allows for real-time UI and feature updates without requiring an App Store submission, all managed through a Firebase backend. It showcases advanced concepts like feature gating, multi-context user support (e.g., personal vs. business plans), offline caching, and a decoupled, component-based UI architecture.
+ConfigHub is a production-grade iOS application built with SwiftUI that demonstrates a robust, scalable remote configuration system. The project's architecture is modeled after the dynamic, multi-tenant systems required to serve customized user experiences for a satellite internet provider with distinct partners and customer tiers (e.g., personal, business, and combined plans).
 
-## Key Features
+This system allows for real-time UI and feature flag management via a Firebase backend, eliminating the need for App Store updates for most changes. It is architected to handle complex business logic, such as merged user contexts, while ensuring a seamless offline experience and forward compatibility with future features.
 
-* **Dynamic UI Rendering:** The entire UI, including the theme color, feature lists, and tab bar, is dynamically built based on the configuration fetched from the server.
-* **Client Context System:** The app's appearance and available features change based on the user's context (e.g., different providers and plan types).
-* **Merged Contexts:** The app can intelligently merge configurations for users who belong to multiple groups (e.g., a user with both personal and business plans).
-* **Feature Gating:** Features can be enabled or disabled remotely. The UI is built from a list of feature flags, and individual feature views are rendered dynamically.
-* **Offline Caching:** The app uses Firebase's built-in persistence to cache the last known configuration, ensuring it is fully functional even without an internet connection.
-* **Type-Safe & Forward-Compatible:** The app uses a custom `Codable` Swift `enum` to safely parse new or unknown features from the backend without crashing, while logging them to Analytics for review.
-* **Component-Based Architecture:** Each feature is built as a separate, reusable SwiftUI view, managed by a `ViewFactory` for a clean and scalable codebase.
-* **Debug Tools:** The app includes a debug picker to easily simulate different user contexts for testing and development.
+## App Demo
+
+![App Demo](https://media.giphy.com/media/CKlzLlOEYqf3Tlur6G/giphy.gif)
+
+## Architectural Decisions & Key Concepts
+
+This project was built to solve several complex, real-world engineering challenges:
+
+* **Server-Side Logic with Client-Side Fallbacks:** The primary architecture uses **Firebase Remote Config with Conditions** to manage complexity on the server. The client provides its context (via an Analytics User Property), and the server returns the precise configuration. This minimizes client-side logic and reduces the potential for bugs. For advanced cases like merged contexts, the client contains robust logic to fetch and intelligently combine multiple configurations.
+
+* **Decoupled, Component-Based UI:** The UI is not monolithic. It is built dynamically using a `ViewFactory` that maps a type-safe `Feature` enum to specific, reusable SwiftUI views. This demonstrates true **feature gating** and makes the codebase incredibly easy to maintain and scale.
+
+* **Type Safety & Forward Compatibility:** To prevent crashes from backend changes, the app uses a custom `Codable` Swift `enum` with an `.unknown` case. If the server sends a new feature the app doesn't recognize, it is safely decoded and ignored by the UI, while an analytics event is logged to alert the development team. This ensures high reliability.
+
+* **Offline-First Approach:** The system is designed for users with intermittent connectivity. Both Firebase Remote Config and Firestore (in earlier iterations) are configured with on-disk persistence. The last successfully fetched configuration is automatically cached, ensuring the app remains fully functional when the user is offline.
+
+* **Integrated Debug Tools:** The app includes a developer-only debug picker that allows for easy simulation of various user contexts, dramatically improving testing efficiency and accuracy.
+
+## Features & Context Logic
+
+The application serves a unique UI and feature set based on the user's context. The logic is designed to support both individual and combined (e.g., Personal + Business) plans.
+
+| Context | Display Name | Theme Color | Data Limit (GB) | Priority Support | Key Features |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **AuraLink Personal** | AuraLink Personal | Blue (`#3498DB`) | 150 | No | `Usage`, `Billing`, `Support Chat`, `Map`, `Status` |
+| **AuraLink Business** | AuraLink Business | Dark Blue (`#2C3E50`) | 750 | **Yes** | `Usage`, `Billing`, `Support Chat`, `Map`, `Status`, **`Team`** |
+| **ZenithSat Personal** | ZenithSat Home | Green (`#2ECC71`) | 180 | No | `Usage`, `Billing`, `Support Chat`, `Map`, `Status` |
+| **ZenithSat Business**| ZenithSat Pro | Purple (`#6C3483`) | 1500 | **Yes** | `Usage`, `Billing`, `Support Chat`, `Map`, `Status`, **`Team`** |
+| **AuraLink Combo** | AuraLink P. + B. | Dark Blue | 750 (Max) | **Yes** | All features, including **`Team`** |
+| **ZenithSat Combo** | ZenithSat P. + B. | Purple | 1500 | **Yes** | All features, including **`Team`** |
 
 ## Tech Stack
 
-* **UI:** SwiftUI
+* **UI:** SwiftUI, MapKit
+* **Architecture:** Model-View-ViewModel (MVVM), Component-Based Rendering
 * **Backend & Services:**
-    * **Firebase Remote Config:** For managing all configuration parameters and conditional values.
-    * **Firebase Authentication:** For anonymous sign-in to satisfy security rules.
-    * **Google Analytics for Firebase:** For setting User Properties that drive conditional configurations.
-* **Architecture:** Model-View-ViewModel (MVVM)
+    * **Firebase Remote Config:** For conditional parameter management.
+    * **Firebase Authentication:** For anonymous sign-in and security rule enforcement.
+    * **Google Analytics for Firebase:** For creating `User Properties` and `Audiences` to drive conditions.
 * **Language:** Swift
 
 ## Setup
 
 1.  Clone the repository.
-2.  Create a new project in the [Firebase Console](https://console.firebase.google.com/).
-3.  Add an iOS app to your Firebase project and download the `GoogleService-Info.plist` file. Place this file in the `ConfigHub/` subfolder and add it to your `.gitignore`.
-4.  In the Firebase Console, enable **Anonymous Authentication**.
-5.  In the **Remote Config** section, create the necessary parameters and conditional values.
-6.  Open the project in Xcode, which will automatically resolve the Swift Package Manager dependencies.
-7.  Build and run the app.
+2.  Create a project in the [Firebase Console](https://console.firebase.google.com/).
+3.  Add an iOS app to your Firebase project, download `GoogleService-Info.plist`, and place it in the project's root source folder. Ensure this file is included in your `.gitignore`.
+4.  In Firebase, enable **Anonymous Authentication**.
+5.  In **Analytics > Custom Definitions**, create a User Property named `provider_plan_type`.
+6.  In **Remote Config**, create the parameters and conditional values as outlined in the "Features & Context Logic" table.
+7.  Open the project in Xcode, allow Swift Package Manager to resolve dependencies, and run the app.
