@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Remote Config Template (lean)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plan_displayName",
+    "plan_themeColor",
+    "plan_data_limit",
+    "plan_priority_support",
+    "plan_feature_list",
+    "kill_switch",
+    "meta_config_version",
+    "meta_ttl_seconds"
+  ],
+  "properties": {
+    "plan_displayName": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "plan_themeColor":  { "type": "string", "pattern": "^#([0-9A-Fa-f]{6})$" },
+    "plan_data_limit":  { "type": "integer", "minimum": 0, "maximum": 200000 },
+    "plan_priority_support": { "type": "boolean" },
+    "plan_feature_list": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "billing_portal",
+          "multi_user_management",
+          "network_status_monitor",
+          "satellite_coverage_map",
+          "support_chat",
+          "view_data_usage",
+          "unknown"
+        ]
+      },
+      "uniqueItems": true,
+      "maxItems": 20
+    },
+    "kill_switch": { "type": "boolean" },
+    "meta_config_version": { "type": "string", "minLength": 1 },
+    "meta_ttl_seconds": { "type": "integer", "minimum": 3600, "maximum": 172800 }
+  }
+}

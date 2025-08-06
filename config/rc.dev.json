@@ -1,0 +1,18 @@
+{
+  "plan_displayName": "AURALINK BUSINESS",
+  "plan_themeColor": "#2C3E50",
+  "plan_data_limit": 750,
+  "plan_priority_support": true,
+  "plan_feature_list": [
+    "billing_portal",
+    "multi_user_management",
+    "network_status_monitor",
+    "satellite_coverage_map",
+    "support_chat",
+    "view_data_usage"
+  ],
+  "kill_switch": false,
+  "meta_config_version": "2025-08-04T17:50:00Z",
+  "meta_ttl_seconds": 86400
+}
+

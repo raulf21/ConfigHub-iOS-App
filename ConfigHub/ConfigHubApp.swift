@@ -6,15 +6,26 @@
 //
 
 import SwiftUI
-import FirebaseCore //Import Firebase
+import Firebase
+import FirebaseRemoteConfig
+
 @main
 struct ConfigHubApp: App {
-    init() {
-        FirebaseApp.configure() // Configure Firebase
-    }
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
+  init() {
+    FirebaseApp.configure()
+
+    let rc = RemoteConfig.remoteConfig()
+    let settings = RemoteConfigSettings()
+    #if DEBUG
+    settings.minimumFetchInterval = 0         // always fetch in Debug
+    #else
+    settings.minimumFetchInterval = 86400     // 24h in Release
+    #endif
+    settings.fetchTimeout = 2                 // lean LLD
+    rc.configSettings = settings
+  }
+
+  var body: some Scene {
+    WindowGroup { ContentView() }
+  }
 }
